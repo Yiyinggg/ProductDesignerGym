@@ -12,8 +12,12 @@ function logoMark(){
     <rect x="77" y="71" width="9" height="14" rx="2.5" stroke="var(--primary-hover)" stroke-width="3"/>
   </svg>`;
 }
-document.getElementById('brandwall').innerHTML = logoMark() +
-  `<div class="wordmark"><div class="l1">Product Designer Gym</div><div class="l2">Cafe</div></div>`;
+/* Hero uses the real neon-sign photo from the design system (it already carries
+   the wordmark). The tiny nav/footer marks keep the compact SVG, since the
+   README says the photo must not be shrunk below ~160px. */
+document.getElementById('brandwall').innerHTML =
+  `<img class="brand-photo" src="../../design-system/assets/Logos/product-designer-gym-neon.png"
+        alt="Product Designer Gym Cafe neon sign" width="1278" height="1231">`;
 document.getElementById('navmark').innerHTML = logoMark();
 document.getElementById('footmark').innerHTML = logoMark();
 

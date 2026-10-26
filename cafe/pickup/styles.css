@@ -5,22 +5,22 @@
      cart drawer + a confirmation overlay, all over the page.
      Committed dark theme (brand palette). Built from brand tokens.
      ============================================================ */
+  /* Colours, spacing, radius, border + focus widths and the DM Sans font come
+     from the shared design system, loaded first in index.html
+     (../../design-system/tokens.css). Here we only ALIAS the few names this
+     prototype spells differently, and define the handful of tokens that the
+     shared set does not include. */
   :root{
-    --bg:#111318; --surface:#1B1F2A; --surface-2:#232838;
-    --primary:#00BFFF; --primary-hover:#33CCFF; --on-primary:#111318;
-    --text:#F5F5F5; --text-muted:#C4CAD4; --border:#515867;
-    --success:#00E676; --warning:#FFD166; --error:#FF6B6B;
-    --neon-pink:#FF3DA6; --neon-gold:#FFD166;
+    --bg:var(--background);          /* shared token is named --background */
+    --bw:var(--border-width);
+    --focus-ring:var(--focus-ring-width);
+    --font:var(--font-sans);
 
-    --space-1:4px; --space-2:8px; --space-3:12px; --space-4:16px;
-    --space-5:24px; --space-6:32px; --space-7:48px;
-    --radius-1:4px; --radius-2:8px; --radius-3:12px; --radius-4:16px;
-    --radius-5:24px; --radius-full:9999px;
-    --bw:1px; --focus-ring:2px;
-    --maxw:1120px;
-
-    --font:"DM Sans",system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
+    --surface-2:#232838;             /* raised row fill — prototype-only */
+    --neon-pink:#FF3DA6;             /* accents for the small SVG mark */
+    --neon-gold:#FFD166;
     --mono:"DM Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
+    --maxw:1120px;
     color-scheme:dark;
   }
   *{box-sizing:border-box}
@@ -99,9 +99,11 @@
   .hero p.lede{color:var(--text-muted);font-size:clamp(15px,2.2vw,18px);margin:var(--space-5) 0 var(--space-6);max-width:46ch}
   .hero .cta{display:flex;flex-wrap:wrap;gap:var(--space-3)}
   .hero-art{display:grid;place-items:center}
-  .brand-wall{width:100%;max-width:380px;border-radius:var(--radius-5);
-    padding:var(--space-7) var(--space-5);text-align:center;
-    background:linear-gradient(160deg,#15171f,#0c0d12);border:var(--bw) solid rgba(81,88,103,.4)}
+  .brand-wall{width:100%;max-width:380px;border-radius:var(--radius-5);overflow:hidden;
+    background:#0c0d12;border:var(--bw) solid rgba(81,88,103,.4);line-height:0}
+  /* real neon-sign photo (design-system asset). README: use on a dark ground,
+     never recolour or crop the glow, never below ~160px wide. */
+  .brand-photo{width:100%;height:auto;display:block}
   .logo-neon{width:min(240px,60vw);height:auto;margin:0 auto var(--space-5);display:block}
   .wordmark .l1{font-size:24px;font-weight:700;letter-spacing:-.3px}
   .wordmark .l2{font-size:17px;color:var(--neon-gold);letter-spacing:4px;text-transform:uppercase;

@@ -28,7 +28,13 @@ Then visit `http://localhost:8000/cafe/pickup/`.
 - Type is **DM Sans** (DM Mono for prices and the pickup code), loaded from Google Fonts.
 - The menu (Flat White, Cold Brew Set, Protein Bowl, Pastry Pass) and USD prices
   match the cafe menu; edit the `MENU` and `OPTS` objects at the top of `app.js`.
-- The logo is an inline SVG recreation of the neon mark. The repo also ships the
-  real asset at `design-system/assets/Logos/product-designer-gym-neon.png` and shared
-  tokens at `design-system/tokens.css` — a follow-up could wire this prototype to
-  those instead of its own copy of the tokens.
+- **Design system:** the site links the shared tokens at `design-system/tokens.css`
+  for colours, spacing, radius and border/focus widths. `styles.css` only aliases a
+  few names it spells differently (`--bg` → `--background`, `--bw` → `--border-width`,
+  `--focus-ring` → `--focus-ring-width`) and adds a couple of prototype-only tokens.
+- **Logo:** the hero uses the real neon-sign photo at
+  `design-system/assets/Logos/product-designer-gym-neon.png`. The small nav and footer
+  marks stay as an inline SVG, because the asset README says the photo must not be
+  shrunk below ~160px (the wordmark stops reading).
+- `mobile-prototype.html` stays self-contained (its own tokens and SVG mark) so it
+  opens standalone.
