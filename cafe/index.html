@@ -14,12 +14,89 @@
 <link rel="stylesheet" href="../design-system/tokens.css">
 <link rel="stylesheet" href="../design-system/components/bundle.css">
 <style>body{margin:0;background:var(--background)}a{color:var(--primary);text-decoration:none}a:hover{color:var(--primary-hover)}a:focus-visible{outline:var(--focus-ring-width) solid var(--primary);outline-offset:2px;border-radius:var(--radius-1)}</style>
+<style>
+.rsv{max-width:1120px;margin:0 auto;padding:var(--space-7) var(--space-5);display:flex;flex-direction:column;gap:var(--space-5)}
+.rsv-head{display:flex;flex-direction:column;gap:var(--space-3);max-width:640px}
+.rsv-grid{display:grid;grid-template-columns:minmax(0,2fr) minmax(300px,1fr);gap:var(--space-4);align-items:start}
+@media (max-width:880px){.rsv-grid{grid-template-columns:minmax(0,1fr)}}
+.rsv-panel{background:var(--surface);border:var(--border-width) solid var(--border);border-radius:var(--radius-4);overflow:hidden;min-width:0}
+.rsv-bar{display:flex;align-items:center;justify-content:space-between;gap:var(--space-3);padding:var(--space-3) var(--space-4);border-bottom:var(--border-width) solid var(--border);color:var(--text-muted)}
+.rsv-bar strong{color:var(--text);font-weight:600}
+.rsv-zoom{padding:0 var(--space-2);border:var(--border-width) solid var(--border);border-radius:var(--radius-1);font-variant-numeric:tabular-nums}
+.rsv-scroll{overflow-x:auto;overscroll-behavior-x:contain}
+.rsv-canvas{position:relative;min-width:640px;aspect-ratio:16/10;background:var(--background) radial-gradient(color-mix(in srgb,var(--border) 70%,transparent) 1px,transparent 1px) 0 0/16px 16px;cursor:default}
+.rsv-fixture{position:absolute;display:flex;align-items:center;justify-content:center;text-align:center;border:var(--border-width) dashed var(--border);border-radius:var(--radius-2);color:var(--text-muted);pointer-events:none}
+.rsv-door{position:absolute;left:4%;bottom:0;width:13%;height:var(--space-2);background:var(--border);border-radius:var(--radius-1) var(--radius-1) 0 0}
+.rsv-door-label{position:absolute;left:4%;bottom:var(--space-3);color:var(--text-muted)}
+.tbl{position:absolute;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:var(--space-2);padding:var(--space-2);background:var(--surface);color:var(--text);border:var(--border-width) solid var(--border);border-radius:var(--radius-2);font:inherit;cursor:pointer;transition:border-color .12s,background-color .12s,opacity .2s}
+.tbl:hover{border-color:var(--primary)}
+.tbl:focus-visible{outline:var(--focus-ring-width) solid var(--primary);outline-offset:2px}
+.tbl-name{font-weight:600;text-align:center}
+.tbl-seats{display:flex;flex-wrap:wrap;justify-content:center;gap:var(--space-1);max-width:100%}
+.seat{width:10px;height:10px;border-radius:var(--radius-full);border:var(--border-width) solid var(--text-muted)}
+.tbl-tag{color:var(--text-muted)}
+.tbl.is-booked{background:var(--surface) repeating-linear-gradient(135deg,transparent 0 6px,color-mix(in srgb,var(--border) 45%,transparent) 6px 7px)}
+.tbl.is-booked .tbl-name,.tbl.is-booked .seat{opacity:.6}
+.tbl.is-mine{border-color:var(--success)}
+.tbl.is-mine .tbl-tag{color:var(--success);font-weight:600}
+.tbl.is-mine .seat{background:var(--success);border-color:var(--success)}
+.tbl.is-tight{opacity:.4}
+.tbl.is-tight:hover,.tbl.is-tight.is-selected{opacity:1}
+.seat.is-filled{background:var(--primary);border-color:var(--primary)}
+.tbl.is-selected{border-color:var(--primary);background-color:color-mix(in srgb,var(--primary) 10%,var(--surface));z-index:2}
+.tbl-handle,.tbl-frame,.tbl-dim{display:none;position:absolute;pointer-events:none}
+.tbl.is-selected .tbl-handle,.tbl.is-selected .tbl-frame,.tbl.is-selected .tbl-dim{display:block}
+.tbl:hover .tbl-frame{display:block}
+.tbl-handle{width:8px;height:8px;background:var(--text);border:var(--border-width) solid var(--primary)}
+.tbl-handle.tl{top:-5px;left:-5px}.tbl-handle.tr{top:-5px;right:-5px}.tbl-handle.bl{bottom:-5px;left:-5px}.tbl-handle.br{bottom:-5px;right:-5px}
+.tbl-frame{left:-1px;bottom:calc(100% + var(--space-1));color:var(--primary);font-weight:600;white-space:nowrap}
+.tbl-dim{left:50%;top:calc(100% + var(--space-2));transform:translateX(-50%);padding:0 var(--space-2);background:var(--primary);color:var(--on-primary);border-radius:var(--radius-1);font-weight:600;white-space:nowrap}
+.tbl.is-tight.is-selected .tbl-dim{background:var(--warning)}
+.tbl.is-booked.is-selected .tbl-dim{background:var(--error)}
+.rsv-cursor{position:absolute;left:30%;top:30%;display:flex;align-items:flex-start;gap:2px;pointer-events:none;z-index:3;animation:rsv-wander 22s ease-in-out infinite}
+.rsv-cursor svg{width:16px;height:16px;flex:none}
+.rsv-cursor span{margin-top:12px;padding:0 var(--space-2);background:var(--text);color:var(--background);border-radius:var(--radius-1);font-weight:600;white-space:nowrap}
+@keyframes rsv-wander{0%,8%{left:34%;top:20%}22%,30%{left:58%;top:50%}44%,52%{left:86%;top:30%}66%,74%{left:46%;top:80%}88%,100%{left:34%;top:20%}}
+@media (prefers-reduced-motion:reduce){.rsv-cursor{animation:none;left:60%;top:52%}.tbl{transition:none}}
+.rsv-legend{display:flex;flex-wrap:wrap;gap:var(--space-4);padding:var(--space-3) var(--space-4);border-top:var(--border-width) solid var(--border);color:var(--text-muted)}
+.rsv-legend span{display:inline-flex;align-items:center;gap:var(--space-2)}
+.rsv-swatch{width:12px;height:12px;border-radius:var(--radius-1);border:var(--border-width) solid var(--border);background:var(--surface)}
+.rsv-swatch.sel{border-color:var(--primary);background:color-mix(in srgb,var(--primary) 25%,var(--surface))}
+.rsv-swatch.booked{background:repeating-linear-gradient(135deg,var(--surface) 0 2px,var(--border) 2px 3px)}
+.rsv-swatch.mine{border-color:var(--success)}
+.rsv-insp{display:flex;flex-direction:column}
+.rsv-sec{display:flex;flex-direction:column;gap:var(--space-3);padding:var(--space-4);border-bottom:var(--border-width) solid var(--border)}
+.rsv-sec:last-child{border-bottom:0}
+.rsv-sec-title{margin:0;font-weight:600;color:var(--text-muted)}
+.rsv-row{display:flex;align-items:center;justify-content:space-between;gap:var(--space-3)}
+.rsv-chips{display:flex;flex-wrap:wrap;gap:var(--space-2)}
+.rsv-chip{display:inline-flex;flex-direction:column;align-items:center;min-width:56px;padding:var(--space-1) var(--space-3);background:transparent;color:var(--text);border:var(--border-width) solid var(--border);border-radius:var(--radius-2);font:inherit;cursor:pointer;font-variant-numeric:tabular-nums}
+.rsv-chip:hover{border-color:var(--text-muted)}
+.rsv-chip:focus-visible{outline:var(--focus-ring-width) solid var(--primary);outline-offset:2px}
+.rsv-chip[aria-pressed="true"]{background:var(--primary);border-color:var(--primary);color:var(--on-primary);font-weight:600}
+.rsv-chip:disabled{color:var(--text-muted);border-style:dashed;cursor:not-allowed;text-decoration:line-through}
+.rsv-chip-sub{opacity:.85}
+.rsv-seg{display:inline-flex;border:var(--border-width) solid var(--border);border-radius:var(--radius-2);overflow:hidden}
+.rsv-seg .rsv-chip{border:0;border-radius:0;min-width:48px}
+.rsv-seg .rsv-chip+.rsv-chip{border-left:var(--border-width) solid var(--border)}
+.rsv-step{display:inline-flex;align-items:center;gap:var(--space-2)}
+.rsv-step output{min-width:24px;text-align:center;font-weight:600;font-variant-numeric:tabular-nums}
+.rsv-step .pdg-btn{min-width:40px;padding:0}
+.rsv-lint{margin:0;color:var(--text-muted)}
+.rsv-lint .pdg-btn{display:flex;margin-top:var(--space-2)}
+.rsv-kbd{padding:0 var(--space-1);border:var(--border-width) solid var(--border);border-radius:var(--radius-1);color:var(--text-muted)}
+.rsv-done dl{display:grid;grid-template-columns:auto 1fr;gap:var(--space-2) var(--space-4);margin:0}
+.rsv-done dt{color:var(--text-muted)}
+.rsv-done dd{margin:0}
+.rsv-actions{display:flex;flex-wrap:wrap;gap:var(--space-2)}
+.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+</style>
 </helmet>
 <div style="background:var(--background);color:var(--text);font:var(--text-body);min-height:100vh">
 <nav style="display:flex;align-items:center;justify-content:space-between;gap:var(--space-4);padding:var(--space-4) var(--space-5);border-bottom:var(--border-width) solid var(--border);flex-wrap:wrap">
 <div style="font:var(--text-h4);color:var(--text)">Product Designer Gym <span style="color:var(--primary)">Cafe</span></div>
 <div style="display:flex;gap:var(--space-5);align-items:center;flex-wrap:wrap">
-<a href="#menu" style="color:var(--text)">Menu</a><a href="#visit" style="color:var(--text)">Visit</a>
+<a href="#menu" style="color:var(--text)">Menu</a><a href="#reserve" style="color:var(--text)">Reserve</a><a href="#visit" style="color:var(--text)">Visit</a>
 </div></nav>
 
 <header style="max-width:1120px;margin:0 auto;padding:var(--space-7) var(--space-5);display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:var(--space-7);align-items:center">
@@ -44,10 +121,89 @@
 </sc-for>
 </div></section>
 
+<section id="reserve" class="rsv">
+<div class="rsv-head">
+<h2 style="margin:0;font:var(--text-h2)">Reserve a table</h2>
+<p class="body" style="margin:0;color:var(--text-muted)">Pick a table the way you'd pick a frame: select it on the floor plan, then set the details in the inspector. Tables hold for up to two hours.</p>
+</div>
+<div class="rsv-grid">
+<div class="rsv-panel">
+<div class="rsv-bar caption"><span><strong>Floor plan</strong> · {{ whenLabel }}</span><span class="rsv-zoom small" aria-hidden="true">100%</span></div>
+<div class="rsv-scroll">
+<div class="rsv-canvas caption" onClick="{{ onCanvasClick }}">
+<div class="rsv-fixture small" style="left:80%;top:68%;width:16%;height:22%">Coffee counter</div>
+<div class="rsv-door" aria-hidden="true"></div><div class="rsv-door-label small" aria-hidden="true">Entrance</div>
+<sc-for list="{{ tables }}" as="t">
+<button type="button" class="{{ t.cls }}" style="left:{{ t.x }}%;top:{{ t.y }}%;width:{{ t.w }}%;height:{{ t.h }}%" aria-pressed="{{ t.pressed }}" aria-label="{{ t.aria }}" onClick="{{ t.select }}">
+<span class="tbl-name small">{{ t.short }}</span>
+<span class="tbl-seats"><sc-for list="{{ t.seatDots }}" as="d"><span class="{{ d.cls }}"></span></sc-for></span>
+<span class="tbl-tag small">{{ t.tag }}</span>
+<span class="tbl-frame small">{{ t.name }}</span>
+<span class="tbl-dim small">{{ t.dim }}</span>
+<span class="tbl-handle tl"></span><span class="tbl-handle tr"></span><span class="tbl-handle bl"></span><span class="tbl-handle br"></span>
+</button>
+</sc-for>
+<div class="rsv-cursor small" aria-hidden="true"><svg viewBox="0 0 16 16"><path d="M2 1.5v12l3.4-3.1 2.3 5 2-.9-2.3-4.9H12z" fill="var(--text)" stroke="var(--background)" stroke-width="1"/></svg><span>Sam · barista</span></div>
+</div>
+</div>
+<div class="rsv-legend small"><span><i class="rsv-swatch"></i>Available</span><span><i class="rsv-swatch sel"></i>Selected</span><span><i class="rsv-swatch booked"></i>Booked</span><span><i class="rsv-swatch mine"></i>Yours</span><span>Dimmed: too small for your party</span></div>
+</div>
+
+<aside class="rsv-panel rsv-insp" aria-label="Reservation details">
+<sc-if value="{{ !confirmed }}">
+<div class="rsv-sec">
+<h3 class="rsv-sec-title caption">Day</h3>
+<div class="rsv-chips"><sc-for list="{{ days }}" as="d"><button type="button" class="rsv-chip small" aria-pressed="{{ d.pressed }}" onClick="{{ d.pick }}"><span>{{ d.label }}</span><span class="rsv-chip-sub">{{ d.sub }}</span></button></sc-for></div>
+<h3 class="rsv-sec-title caption">Start time</h3>
+<div class="rsv-chips"><sc-for list="{{ slots }}" as="s"><button type="button" class="rsv-chip caption" aria-pressed="{{ s.pressed }}" disabled="{{ s.past }}" onClick="{{ s.pick }}">{{ s.label }}</button></sc-for></div>
+<sc-if value="{{ noSlots }}"><p class="rsv-lint caption">No start times left today. Pick another day.</p></sc-if>
+</div>
+<div class="rsv-sec">
+<div class="rsv-row"><h3 class="rsv-sec-title caption" id="rsv-party">Party size</h3>
+<div class="rsv-step" role="group" aria-labelledby="rsv-party"><button type="button" class="pdg-btn pdg-btn--secondary body" aria-label="Fewer people" disabled="{{ partyMin }}" onClick="{{ partyDown }}">−</button><output class="body" aria-live="polite">{{ party }}</output><button type="button" class="pdg-btn pdg-btn--secondary body" aria-label="More people" disabled="{{ partyMax }}" onClick="{{ partyUp }}">+</button></div></div>
+<div class="rsv-row"><h3 class="rsv-sec-title caption" id="rsv-dur">Duration</h3>
+<div class="rsv-seg" role="group" aria-labelledby="rsv-dur"><sc-for list="{{ durations }}" as="u"><button type="button" class="rsv-chip caption" aria-pressed="{{ u.pressed }}" onClick="{{ u.pick }}">{{ u.label }}</button></sc-for></div></div>
+</div>
+<div class="rsv-sec">
+<h3 class="rsv-sec-title caption">Table</h3>
+<sc-if value="{{ !sel }}">
+<p class="rsv-lint caption">Nothing selected. Click a table on the floor plan, or let us pick the smallest free one for {{ partyLabel }}.<button type="button" class="pdg-btn pdg-btn--ghost caption" style="padding:0;min-height:0" onClick="{{ autoFit }}">Auto-fit my party</button></p>
+</sc-if>
+<sc-if value="{{ sel }}">
+<div class="rsv-row"><span class="h4">{{ sel.name }}</span><span class="caption" style="color:var(--text-muted)">{{ sel.dim }}</span></div>
+<sc-if value="{{ selOk }}"><span class="pdg-badge pdg-badge--success small" style="align-self:flex-start"><svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M2.5 6.2 5 8.5l4.5-5"/></svg>Free {{ rangeLabel }}</span></sc-if>
+<sc-if value="{{ selMine }}"><span class="pdg-badge pdg-badge--success small" style="align-self:flex-start"><svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M2.5 6.2 5 8.5l4.5-5"/></svg>Already yours</span><p class="rsv-lint caption">You've reserved this table at that time. Pick another time to add a second booking.</p></sc-if>
+<sc-if value="{{ selBooked }}"><span class="pdg-badge pdg-badge--error small" style="align-self:flex-start"><svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><circle cx="6" cy="6" r="4.5"/><path d="M2.8 9.2l6.4-6.4"/></svg>Booked {{ rangeLabel }}</span>
+<div class="rsv-lint caption"><sc-if value="{{ nextFree }}">It's free from {{ nextFree.label }}.<button type="button" class="pdg-btn pdg-btn--ghost caption" style="padding:0;min-height:0" onClick="{{ nextFree.pick }}">{{ nextFree.cta }}</button></sc-if><sc-if value="{{ !nextFree }}">It's booked for the rest of the day.<button type="button" class="pdg-btn pdg-btn--ghost caption" style="padding:0;min-height:0" onClick="{{ autoFit }}">Find a free table</button></sc-if></div></sc-if>
+<sc-if value="{{ selTight }}"><span class="pdg-badge pdg-badge--warning small" style="align-self:flex-start"><svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M6 1.5 11 10.5H1z"/><path d="M6 5v2.5"/></svg>Too small</span>
+<p class="rsv-lint caption">{{ sel.name }} seats {{ sel.seats }}, and you're {{ partyLabel }}.<button type="button" class="pdg-btn pdg-btn--ghost caption" style="padding:0;min-height:0" onClick="{{ autoFit }}">Snap to a table that fits</button></p></sc-if>
+</sc-if>
+</div>
+<div class="rsv-sec">
+<label class="pdg-field" style="min-width:0"><span class="pdg-field__label caption">Name for the booking</span>
+<input class="pdg-input body" autocomplete="name" placeholder="Alex Rivera" value="{{ name }}" onChange="{{ onName }}" onKeyDown="{{ onNameKey }}"></label>
+<button type="button" class="pdg-btn pdg-btn--primary body" disabled="{{ !ready }}" onClick="{{ confirm }}">{{ ctaLabel }}</button>
+<sc-if value="{{ !ready }}"><p class="rsv-lint small">{{ ctaHint }}</p></sc-if>
+</div>
+</sc-if>
+<sc-if value="{{ confirmed }}">
+<div class="rsv-sec rsv-done">
+<span class="pdg-badge pdg-badge--success small" style="align-self:flex-start"><svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M2.5 6.2 5 8.5l4.5-5"/></svg>Reserved</span>
+<h3 class="h3" style="margin:0">See you {{ confirmed.dayLabel }}, {{ confirmed.firstName }}.</h3>
+<dl class="caption"><dt>Table</dt><dd>{{ confirmed.table }}</dd><dt>When</dt><dd>{{ confirmed.when }}</dd><dt>Party</dt><dd>{{ confirmed.partyLabel }}</dd></dl>
+<p class="rsv-lint small">We'll hold the table for 15 minutes after your start time.</p>
+<div class="rsv-actions"><button type="button" class="pdg-btn pdg-btn--secondary caption" onClick="{{ undo }}">Undo <span class="rsv-kbd small" aria-hidden="true">{{ undoKey }}</span></button><button type="button" class="pdg-btn pdg-btn--ghost caption" onClick="{{ another }}">Book another table</button></div>
+</div>
+</sc-if>
+<div class="sr-only" aria-live="polite">{{ announce }}</div>
+</aside>
+</div>
+</section>
+
 <section id="visit" style="max-width:1120px;margin:0 auto;padding:var(--space-7) var(--space-5)">
 <div style="background:var(--surface);border:var(--border-width) solid var(--border);border-radius:var(--radius-4);padding:var(--space-7) var(--space-5);display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:var(--space-5)">
 <div style="display:flex;flex-direction:column;gap:var(--space-4)"><h2 style="margin:0;font:var(--text-h2)">Come train with us</h2>
-<p style="margin:0;color:var(--text-muted)">Walk-ins welcome. Desks can be held for up to two hours.</p>
+<p style="margin:0;color:var(--text-muted)">Walk-ins welcome. Desks can be held for up to two hours — <a href="#reserve">reserve a table</a> to be sure of one.</p>
 </div>
 <div style="display:flex;flex-direction:column;gap:var(--space-2)"><h3 style="margin:0;font:var(--text-h4)">Hours</h3>
 <div style="color:var(--text-muted)">Mon–Fri 7:30–18:00</div><div style="color:var(--text-muted)">Sat–Sun 9:00–16:00</div>
@@ -57,8 +213,145 @@
 </div>
 </x-dc>
 <script type="text/x-dc" data-dc-script>
+const TABLES = [
+  {id:'pod-1', name:'Focus Pod 1', short:'Pod 1', seats:1, x:4, y:8, w:13, h:20},
+  {id:'pod-2', name:'Focus Pod 2', short:'Pod 2', seats:1, x:4, y:36, w:13, h:20},
+  {id:'pair-a', name:'Pairing Table A', short:'Pair A', seats:2, x:24, y:8, w:18, h:20},
+  {id:'pair-b', name:'Pairing Table B', short:'Pair B', seats:2, x:48, y:8, w:18, h:20},
+  {id:'crit', name:'Critique Table', short:'Critique', seats:6, x:24, y:40, w:42, h:20},
+  {id:'bench', name:'Workshop Bench', short:'Workshop', seats:8, x:24, y:70, w:48, h:20},
+  {id:'window', name:'Window Bar', short:'Window', seats:4, x:80, y:8, w:16, h:52}
+];
+const DURATIONS = [30, 60, 90, 120];
+const MAX_PARTY = 8;
+
+function hash(str) {
+  let h = 2166136261;
+  for (let i = 0; i < str.length; i++) { h ^= str.charCodeAt(i); h = Math.imul(h, 16777619); }
+  return h >>> 0;
+}
+function fmt(min) { return Math.floor(min / 60) + ':' + String(min % 60).padStart(2, '0'); }
+function people(n) { return n === 1 ? '1 person' : n + ' people'; }
+function overlaps(a, ad, b, bd) { return a < b + bd && b < a + ad; }
+
 class Component extends DCLogic {
+  state = {day: this.firstOpenDay(), slot: null, party: 2, duration: 60, selected: null, name: '', mine: [], confirmed: null, announce: ''};
+
+  componentDidMount() {
+    this.onKey = (e) => {
+      const typing = /^(INPUT|TEXTAREA)$/.test(e.target.tagName);
+      if (e.key === 'Escape' && this.state.selected && !this.state.confirmed) this.setState({selected: null, announce: 'Selection cleared'});
+      if ((e.metaKey || e.ctrlKey) && !e.shiftKey && e.key.toLowerCase() === 'z' && !typing && this.state.mine.length) {
+        e.preventDefault();
+        this.undo();
+      }
+    };
+    document.addEventListener('keydown', this.onKey);
+  }
+  componentWillUnmount() { document.removeEventListener('keydown', this.onKey); }
+
+  firstOpenDay() {
+    const open = this.days().find((d) => this.slotsFor(d, 60).some((s) => !s.past));
+    return open ? open.i : 0;
+  }
+  days() {
+    const now = new Date();
+    return [0, 1, 2, 3, 4].map((i) => {
+      const d = new Date(now.getFullYear(), now.getMonth(), now.getDate() + i);
+      const weekend = d.getDay() === 0 || d.getDay() === 6;
+      return {
+        i, key: d.toDateString(),
+        label: i === 0 ? 'Today' : i === 1 ? 'Tomorrow' : d.toLocaleDateString('en-GB', {weekday: 'short'}),
+        sub: d.toLocaleDateString('en-GB', {day: 'numeric', month: 'short'}),
+        long: i === 0 ? 'today' : i === 1 ? 'tomorrow' : 'on ' + d.toLocaleDateString('en-GB', {weekday: 'long'}),
+        open: weekend ? 9 * 60 : 8 * 60,
+        close: weekend ? 16 * 60 : 18 * 60
+      };
+    });
+  }
+  slotsFor(day, duration) {
+    const now = new Date();
+    const nowMin = now.getHours() * 60 + now.getMinutes();
+    const out = [];
+    for (let m = day.open; m + duration <= day.close; m += 60) out.push({m, past: day.i === 0 && m <= nowMin});
+    return out;
+  }
+  // Each table has a few pseudo-random hour-long bookings per day, stable for a given date.
+  status(t, day, start, duration) {
+    if (start == null) return 'ok';
+    if (this.state.mine.some((r) => r.tableId === t.id && r.dayKey === day.key && overlaps(start, duration, r.start, r.duration))) return 'mine';
+    for (let h = 7; h < 18; h++) {
+      if (hash(t.id + day.key + h) % 5 === 0 && overlaps(start, duration, h * 60, 60)) return 'booked';
+    }
+    return 'ok';
+  }
+  current() {
+    const days = this.days();
+    const day = days[this.state.day];
+    const slots = this.slotsFor(day, this.state.duration);
+    const valid = slots.filter((s) => !s.past);
+    const start = valid.some((s) => s.m === this.state.slot) ? this.state.slot : (valid[0] ? valid[0].m : null);
+    return {days, day, slots, start};
+  }
+
+  select(id) {
+    const t = TABLES.find((x) => x.id === id);
+    this.setState({selected: id, announce: t.name + ' selected'});
+  }
+  autoFit() {
+    const {day, start} = this.current();
+    const fit = TABLES.filter((t) => t.seats >= this.state.party && this.status(t, day, start, this.state.duration) === 'ok')
+      .sort((a, b) => a.seats - b.seats)[0];
+    if (fit) this.setState({selected: fit.id, announce: fit.name + ' selected. It seats ' + fit.seats + '.'});
+    else this.setState({announce: 'No free table fits ' + people(this.state.party) + ' at ' + fmt(start) + '. Try another time.'});
+  }
+  confirm() {
+    const {day, start} = this.current();
+    const t = TABLES.find((x) => x.id === this.state.selected);
+    const r = {id: Date.now(), tableId: t.id, dayKey: day.key, start, duration: this.state.duration, party: this.state.party};
+    const when = day.label + ' ' + day.sub + ' · ' + fmt(start) + '–' + fmt(start + r.duration);
+    this.setState({
+      mine: [...this.state.mine, r],
+      confirmed: {id: r.id, table: t.name, when, dayLabel: day.long, partyLabel: people(r.party), firstName: this.state.name.trim().split(/\s+/)[0]},
+      announce: 'Reserved ' + t.name + ', ' + when
+    });
+  }
+  undo() {
+    const mine = this.state.mine.slice(0, -1);
+    const last = this.state.mine[this.state.mine.length - 1];
+    const confirmed = this.state.confirmed && this.state.confirmed.id === last.id ? null : this.state.confirmed;
+    this.setState({mine, confirmed, selected: last.tableId, announce: 'Reservation undone'});
+  }
+
   renderVals() {
+    const {days, day, slots, start} = this.current();
+    const {party, duration, selected, name} = this.state;
+    const tables = TABLES.map((t) => {
+      const st = this.status(t, day, start, duration);
+      const tight = t.seats < party;
+      const isSel = t.id === selected;
+      const cls = ['tbl', isSel && 'is-selected', st === 'booked' && 'is-booked', st === 'mine' && 'is-mine', tight && 'is-tight'].filter(Boolean).join(' ');
+      const seatLabel = t.seats === 1 ? '1 seat' : t.seats + ' seats';
+      return {
+        ...t, cls, pressed: isSel,
+        tag: st === 'booked' ? 'Booked' : st === 'mine' ? 'Yours' : '',
+        dim: isSel && !tight && st === 'ok' ? party + ' of ' + t.seats + ' seats' : seatLabel,
+        aria: t.name + ', ' + seatLabel + ', ' + (st === 'booked' ? 'booked' : st === 'mine' ? 'reserved by you' : tight ? 'too small for ' + people(party) : 'available'),
+        seatDots: Array.from({length: t.seats}, (_, i) => ({cls: 'seat' + ((isSel && !tight && st === 'ok' && i < party) || st === 'mine' ? ' is-filled' : '')})),
+        select: (e) => { e.stopPropagation(); this.select(t.id); },
+        state: st === 'ok' && tight ? 'tight' : st
+      };
+    });
+    const sel = tables.find((t) => t.id === selected) || null;
+    let nextFree = null;
+    if (sel && sel.state === 'booked') {
+      const s = slots.find((x) => !x.past && x.m > start && this.status(sel, day, x.m, duration) === 'ok');
+      if (s) nextFree = {label: fmt(s.m), cta: 'Move to ' + fmt(s.m), pick: () => this.setState({slot: s.m, announce: 'Moved to ' + fmt(s.m)})};
+    }
+    const ready = !!sel && sel.state === 'ok' && start != null && name.trim().length > 0;
+    const ctaHint = start == null ? 'Pick a day with times left.' : !sel ? 'Select a table to continue.' : sel.state !== 'ok' ? 'Pick a table that’s free and fits your party.' : 'Add a name so we know who to look for.';
+    const isMac = /Mac|iP(hone|ad)/.test(navigator.platform || '');
+
     return {
       menu: [
         {name:'Flat White',price:'$4.50',desc:'Double ristretto, silky microfoam.'},
@@ -70,7 +363,26 @@ class Component extends DCLogic {
         {when:'Tue 18:30',title:'Critique Circuit',note:'Bring one screen, get three perspectives.'},
         {when:'Thu 12:30',title:'Lunch & Sketch',note:'30-minute drawing sprint.'},
         {when:'Sat 10:00',title:'Portfolio Workout',note:'Small groups, honest feedback.'}
-      ]
+      ],
+      tables, sel, nextFree,
+      selOk: !!sel && sel.state === 'ok', selMine: !!sel && sel.state === 'mine',
+      selBooked: !!sel && sel.state === 'booked', selTight: !!sel && sel.state === 'tight',
+      whenLabel: start == null ? day.label + ' · closed' : day.label + ' ' + day.sub + ', ' + fmt(start) + '–' + fmt(start + duration),
+      rangeLabel: start == null ? '' : fmt(start) + '–' + fmt(start + duration),
+      days: days.map((d) => ({...d, pressed: d.i === this.state.day, pick: () => this.setState({day: d.i})})),
+      slots: slots.map((s) => ({label: fmt(s.m), past: s.past, pressed: s.m === start, pick: () => this.setState({slot: s.m})})),
+      noSlots: start == null,
+      durations: DURATIONS.map((m) => ({label: m < 60 ? m + 'm' : m / 60 + 'h', pressed: m === duration, pick: () => this.setState({duration: m})})),
+      party, partyLabel: people(party), partyMin: party <= 1, partyMax: party >= MAX_PARTY,
+      partyDown: () => this.setState((st) => ({party: Math.max(1, st.party - 1)})),
+      partyUp: () => this.setState((st) => ({party: Math.min(MAX_PARTY, st.party + 1)})),
+      name, onName: (e) => this.setState({name: e.target.value}),
+      onNameKey: (e) => { if (e.key === 'Enter' && ready) this.confirm(); },
+      ready, ctaHint, ctaLabel: sel ? 'Reserve ' + sel.name : 'Reserve table',
+      confirm: () => this.confirm(), autoFit: () => this.autoFit(), undo: () => this.undo(),
+      another: () => this.setState({confirmed: null, selected: null}),
+      onCanvasClick: (e) => { if (e.target === e.currentTarget && !this.state.confirmed) this.setState({selected: null}); },
+      confirmed: this.state.confirmed, undoKey: isMac ? '⌘Z' : 'Ctrl+Z', announce: this.state.announce
     };
   }
 }
